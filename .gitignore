@@ -1,0 +1,11 @@
+.env
+*.env
+venv/
+__pycache__/
+*.pyc
+ai-module/datasets/
+runs/
+*.pt
+node_modules/
+.DS_Store
+Thumbs.db
