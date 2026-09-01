@@ -1,7 +1,8 @@
 from ultralytics import YOLO
 import cv2
-from collections import Counter
 import statistics
+from datetime import datetime
+from db import traffic_logs  # import the collection from db.py
 
 model = YOLO("yolov8n.pt")
 video_path = "C:/Users/ASUS/Desktop/SmartFlow/ai-module/datasets/roboflow-ambulance/sample_videos/test_traffic.mp4"
@@ -14,9 +15,7 @@ if not cap.isOpened():
     print("Error: Could not open video.")
     exit()
 
-# Store per-frame counts across the whole video
 all_frame_counts = {"car": [], "bike": [], "bus": [], "truck": []}
-
 frame_count = 0
 
 while cap.isOpened():
@@ -44,11 +43,28 @@ while cap.isOpened():
 cap.release()
 cv2.destroyAllWindows()
 
-# ---- AGGREGATION: simulate one "scan" result from all frames ----
+# Aggregate final scan result
 final_scan = {}
 for vtype, values in all_frame_counts.items():
-    # mode = most frequently occurring count across frames (smooths out flicker)
     final_scan[vtype] = statistics.mode(values) if values else 0
 
 print("\n--- Final Scan Result (aggregated) ---")
 print(final_scan)
+
+# ---- Build the document matching your canonical JSON format ----
+document = {
+    "timestamp": datetime.now().isoformat(),
+    "road": "North",  # hardcoded for now, will change per rotation later
+    "cars": final_scan["car"],
+    "bikes": final_scan["bike"],
+    "bus": final_scan["bus"],
+    "truck": final_scan["truck"],
+    "ambulance": False,  # placeholder until Week 3 ambulance detection is built
+    "congestion": "Medium",  # placeholder until congestion detection is built
+    "priority_score": None,  # will be filled by SAPE later
+    "green_time": None  # will be filled by SAPE later
+}
+
+# ---- Insert into MongoDB ----
+result = traffic_logs.insert_one(document)
+print(f"\n✅ Inserted into traffic_logs with ID: {result.inserted_id}")
