@@ -2,10 +2,11 @@ from ultralytics import YOLO
 import cv2
 import statistics
 from datetime import datetime
-from db import traffic_logs  # import the collection from db.py
+from db import traffic_logs
+from sape import run_sape
 
 model = YOLO("yolov8n.pt")
-video_path = "C:/Users/ASUS/Desktop/SmartFlow/ai-module/datasets/roboflow-ambulance/sample_videos/test_traffic.mp4"
+video_path = "../datasets/sample_videos/test_traffic.mp4"
 
 VEHICLE_CLASSES = {2: "car", 3: "bike", 5: "bus", 7: "truck"}
 
@@ -51,20 +52,37 @@ for vtype, values in all_frame_counts.items():
 print("\n--- Final Scan Result (aggregated) ---")
 print(final_scan)
 
-# ---- Build the document matching your canonical JSON format ----
+# ---- Run SAPE on this single road's scan (simulating one road of a 4-road cycle) ----
+road_name = "North"  # will rotate per direction later
+
+single_road_data = {
+    road_name: {
+        "cars": final_scan["car"],
+        "bikes": final_scan["bike"],
+        "bus": final_scan["bus"],
+        "truck": final_scan["truck"],
+        "ambulance": False,  # placeholder until ambulance detection is built
+        "congestion": "Medium"  # placeholder until congestion detection is built
+    }
+}
+
+sape_result = run_sape(single_road_data)
+
+# ---- Build the document with REAL SAPE output ----
 document = {
     "timestamp": datetime.now().isoformat(),
-    "road": "North",  # hardcoded for now, will change per rotation later
+    "road": road_name,
     "cars": final_scan["car"],
     "bikes": final_scan["bike"],
     "bus": final_scan["bus"],
     "truck": final_scan["truck"],
-    "ambulance": False,  # placeholder until Week 3 ambulance detection is built
-    "congestion": "Medium",  # placeholder until congestion detection is built
-    "priority_score": None,  # will be filled by SAPE later
-    "green_time": None  # will be filled by SAPE later
+    "ambulance": False,
+    "congestion": "Medium",
+    "priority_score": sape_result["tps"][road_name] if sape_result["tps"] else None,
+    "green_time": sape_result["green_times"][road_name]
 }
 
 # ---- Insert into MongoDB ----
 result = traffic_logs.insert_one(document)
 print(f"\n✅ Inserted into traffic_logs with ID: {result.inserted_id}")
+print(f"SAPE output: {sape_result}")

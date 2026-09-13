@@ -22,9 +22,37 @@ function App() {
   if (loading) return <p>Loading traffic data...</p>;
   if (error) return <p>Error fetching data: {error}</p>;
 
+  // Check if ANY road currently has an ambulance detected
+  const activeEmergency = trafficData.find((road) => road.ambulance);
+
+  const congestionColor = (level) => {
+    switch (level) {
+      case 'Low': return { backgroundColor: '#d4edda', color: '#155724' };
+      case 'Medium': return { backgroundColor: '#fff3cd', color: '#856404' };
+      case 'High': return { backgroundColor: '#f8d7da', color: '#721c24' };
+      default: return {};
+    }
+  };
+
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <h1>SmartFlow Traffic Dashboard</h1>
+
+      {/* Emergency alert banner */}
+      {activeEmergency && (
+        <div style={{
+          backgroundColor: '#dc3545',
+          color: 'white',
+          padding: '1rem',
+          borderRadius: '6px',
+          marginBottom: '1rem',
+          fontWeight: 'bold',
+          fontSize: '1.1rem'
+        }}>
+          🚨 EMERGENCY OVERRIDE ACTIVE — Ambulance detected on {activeEmergency.road} road. Signal priority given.
+        </div>
+      )}
+
       <table border="1" cellPadding="10" style={{ borderCollapse: 'collapse', width: '100%' }}>
         <thead>
           <tr>
@@ -48,7 +76,17 @@ function App() {
               <td>{road.bus}</td>
               <td>{road.truck}</td>
               <td>{road.ambulance ? '🚨 Yes' : 'No'}</td>
-              <td>{road.congestion}</td>
+              <td>
+                <span style={{
+                  ...congestionColor(road.congestion),
+                  padding: '4px 10px',
+                  borderRadius: '4px',
+                  fontWeight: 'bold',
+                  fontSize: '0.85rem'
+                }}>
+                  {road.congestion}
+                </span>
+              </td>
               <td>{road.priority_score}</td>
               <td>{road.green_time}</td>
             </tr>
