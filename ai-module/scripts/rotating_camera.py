@@ -4,7 +4,7 @@ import statistics
 import time
 from datetime import datetime
 from db import traffic_logs, camera_logs, db
-from sape import run_sape
+from sape import run_sape, calculate_congestion
 
 model = YOLO("yolov8n.pt")
 
@@ -22,7 +22,7 @@ ROTATION_INTERVAL_SEC = 3
 camera_status = db["camera_status"]
 
 latest_road_data = {
-    road: {"cars": 0, "bikes": 0, "bus": 0, "truck": 0, "ambulance": False, "congestion": "Medium"}
+    road: {"cars": 0, "bikes": 0, "bus": 0, "truck": 0, "ambulance": False}
     for road in ROAD_VIDEOS
 }
 
@@ -107,6 +107,19 @@ def run_rotation_cycle():
             "capture_duration_sec": (scan_end - scan_start).total_seconds(),
             "status": "success"
         })
+
+        congestion_level = calculate_congestion({
+            "cars": scan["car"],
+            "bikes": scan["bike"],
+            "bus": scan["bus"],
+            "truck": scan["truck"]
+        })
+
+        latest_road_data[road_name]["cars"] = scan["car"]
+        latest_road_data[road_name]["bikes"] = scan["bike"]
+        latest_road_data[road_name]["bus"] = scan["bus"]
+        latest_road_data[road_name]["truck"] = scan["truck"]
+        latest_road_data[road_name]["congestion"] = congestion_level  # now real, not hardcoded
 
         print(f"{road_name} result: {scan}")
         time.sleep(ROTATION_INTERVAL_SEC)

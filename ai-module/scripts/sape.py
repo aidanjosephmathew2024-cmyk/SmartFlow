@@ -112,6 +112,24 @@ def run_sape(roads_data, rush_hour=None):
         "tps": tps_results
     }
 
+def calculate_congestion(vehicle_data):
+    """
+    Estimate congestion level from raw vehicle counts.
+    vehicle_data = {"cars": int, "bikes": int, "bus": int, "truck": int}
+    """
+    total_vehicles = (
+        vehicle_data["cars"] +
+        vehicle_data["bikes"] +
+        vehicle_data["bus"] +
+        vehicle_data["truck"]
+    )
+
+    if total_vehicles <= 5:
+        return "Low"
+    elif total_vehicles <= 12:
+        return "Medium"
+    else:
+        return "High"
 
 # ---- TEST SCENARIO ----
 if __name__ == "__main__":
