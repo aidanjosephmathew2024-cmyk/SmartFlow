@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .db import traffic_logs
+from .db import traffic_logs, db
 
 app = FastAPI()
+
+camera_status = db["camera_status"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,13 +21,18 @@ def read_root():
 
 @app.get("/traffic")
 def get_traffic():
-    # Fetch real documents from MongoDB, most recent first
     results = traffic_logs.find().sort("timestamp", -1).limit(20)
-
-    # Convert MongoDB documents to JSON-friendly format
     traffic_data = []
     for doc in results:
-        doc["_id"] = str(doc["_id"])  # ObjectId isn't JSON-serializable by default
+        doc["_id"] = str(doc["_id"])
         traffic_data.append(doc)
-
     return traffic_data
+
+
+@app.get("/camera-status")
+def get_camera_status():
+    status = camera_status.find_one({"_id": "current"})
+    if status:
+        status["_id"] = str(status["_id"])
+        return status
+    return {"current_road": None, "status": "unknown", "last_updated": None}

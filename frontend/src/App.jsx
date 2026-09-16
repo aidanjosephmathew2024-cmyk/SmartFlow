@@ -8,6 +8,14 @@ function App() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [roadFilter, setRoadFilter] = useState('All');
   const [sortConfig, setSortConfig] = useState({ key: 'timestamp', direction: 'desc' });
+  const [cameraStatus, setCameraStatus] = useState(null);
+
+  const fetchCameraStatus = () => {
+    fetch('http://127.0.0.1:8000/camera-status')
+      .then((res) => res.json())
+      .then((data) => setCameraStatus(data))
+      .catch(() => setCameraStatus(null));
+  };
 
   const fetchTraffic = () => {
     fetch('http://127.0.0.1:8000/traffic')
@@ -25,16 +33,24 @@ function App() {
 
   useEffect(() => {
     fetchTraffic();
-    const interval = setInterval(fetchTraffic, 5000);
+    fetchCameraStatus();
+    const interval = setInterval(() => {
+      fetchTraffic();
+      fetchCameraStatus();
+    }, 3000); // poll every 3s to match rotation timing
     return () => clearInterval(interval);
   }, []);
 
   const congestionColor = (level) => {
     switch (level) {
-      case 'Low': return { backgroundColor: '#d4edda', color: '#155724' };
-      case 'Medium': return { backgroundColor: '#fff3cd', color: '#856404' };
-      case 'High': return { backgroundColor: '#f8d7da', color: '#721c24' };
-      default: return { backgroundColor: '#e2e3e5', color: '#383d41' };
+      case 'Low':
+        return { backgroundColor: '#d4edda', color: '#155724' };
+      case 'Medium':
+        return { backgroundColor: '#fff3cd', color: '#856404' };
+      case 'High':
+        return { backgroundColor: '#f8d7da', color: '#721c24' };
+      default:
+        return { backgroundColor: '#e2e3e5', color: '#383d41' };
     }
   };
 
@@ -88,6 +104,11 @@ function App() {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
+        {cameraStatus && cameraStatus.current_road && (
+          <div className="camera-status">
+            📷 Camera currently scanning: <strong>{cameraStatus.current_road}</strong>
+          </div>
+        )}
         <h1>SmartFlow Traffic Dashboard</h1>
         {lastUpdated && <span className="last-updated">Last updated: {lastUpdated}</span>}
       </div>
@@ -105,7 +126,10 @@ function App() {
         </div>
         <div className="card">
           <div className="card-label">Avg. Green Time</div>
-          <div className="card-value">{avgGreenTime}{avgGreenTime !== '—' ? 's' : ''}</div>
+          <div className="card-value">
+            {avgGreenTime}
+            {avgGreenTime !== '—' ? 's' : ''}
+          </div>
         </div>
         <div className="card">
           <div className="card-label">High Congestion Roads</div>

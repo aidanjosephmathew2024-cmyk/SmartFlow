@@ -141,3 +141,16 @@
 .status-message.error {
   color: #ff6b6b;
 }
+.camera-status {
+  background-color: #1a2132;
+  border: 1px solid #2a3348;
+  color: #c3c9d6;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.camera-status strong {
+  color: #ffffff;
+}
