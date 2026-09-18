@@ -6,9 +6,12 @@ from datetime import datetime
 from db import traffic_logs, camera_logs, db
 from sape import run_sape, calculate_congestion
 
-model = YOLO("yolov8n.pt")
+general_model = YOLO("yolov8n.pt")
+ambulance_model = YOLO("../runs/detect/models/vehicle_ambulance_detector/weights/best.pt")
 
-VEHICLE_CLASSES = {2: "car", 3: "bike", 5: "bus", 7: "truck"}
+GENERAL_CLASSES = {2: "car", 3: "bike", 5: "bus", 7: "truck"}
+AMBULANCE_CLASS_ID = 4
+AMBULANCE_CONF_THRESHOLD = 0.5
 
 ROAD_VIDEOS = {
     "North": "C:/Users/ASUS/Desktop/SmartFlow/ai-module/datasets/roboflow-ambulance/sample_videos/north.mp4",
@@ -16,26 +19,25 @@ ROAD_VIDEOS = {
     "South": "C:/Users/ASUS/Desktop/SmartFlow/ai-module/datasets/roboflow-ambulance/sample_videos/south.mp4",
     "West": "C:/Users/ASUS/Desktop/SmartFlow/ai-module/datasets/roboflow-ambulance/sample_videos/west.mp4",
 }
+
 FRAMES_PER_SCAN = 10
 ROTATION_INTERVAL_SEC = 3
 
 camera_status = db["camera_status"]
 
 latest_road_data = {
-    road: {"cars": 0, "bikes": 0, "bus": 0, "truck": 0, "ambulance": False}
+    road: {"cars": 0, "bikes": 0, "bus": 0, "truck": 0, "ambulance": False, "congestion": "Medium"}
     for road in ROAD_VIDEOS
 }
 
-# Tracks where each road's video left off, so each scan advances instead of repeating
 road_frame_positions = {road: 0 for road in ROAD_VIDEOS}
 
 
 def scan_road(road_name, video_path):
-    """Capture a short burst of frames from one road's video, resuming from last position."""
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         print(f"⚠️ Could not open video for {road_name}")
-        return {"car": 0, "bike": 0, "bus": 0, "truck": 0}
+        return {"car": 0, "bike": 0, "bus": 0, "truck": 0, "ambulance": 0}
 
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     start_pos = road_frame_positions[road_name]
@@ -45,7 +47,7 @@ def scan_road(road_name, video_path):
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, start_pos)
 
-    frame_counts = {"car": [], "bike": [], "bus": [], "truck": []}
+    frame_counts = {"car": [], "bike": [], "bus": [], "truck": [], "ambulance": []}
     frames_read = 0
 
     while frames_read < FRAMES_PER_SCAN:
@@ -55,19 +57,23 @@ def scan_road(road_name, video_path):
             continue
 
         frames_read += 1
-        results = model(frame, verbose=False)
+        counts = {"car": 0, "bike": 0, "bus": 0, "truck": 0, "ambulance": 0}
 
-        counts = {"car": 0, "bike": 0, "bus": 0, "truck": 0}
-        for box in results[0].boxes:
+        general_results = general_model(frame, verbose=False)
+        for box in general_results[0].boxes:
             class_id = int(box.cls[0])
-            if class_id in VEHICLE_CLASSES:
-                counts[VEHICLE_CLASSES[class_id]] += 1
+            if class_id in GENERAL_CLASSES:
+                counts[GENERAL_CLASSES[class_id]] += 1
+
+        amb_results = ambulance_model(frame, verbose=False)
+        for box in amb_results[0].boxes:
+            if int(box.cls[0]) == AMBULANCE_CLASS_ID and float(box.conf[0]) >= AMBULANCE_CONF_THRESHOLD:
+                counts["ambulance"] += 1
 
         for vtype in frame_counts:
             frame_counts[vtype].append(counts[vtype])
 
     road_frame_positions[road_name] = start_pos + FRAMES_PER_SCAN
-
     cap.release()
 
     final_scan = {}
@@ -99,6 +105,15 @@ def run_rotation_cycle():
         latest_road_data[road_name]["bikes"] = scan["bike"]
         latest_road_data[road_name]["bus"] = scan["bus"]
         latest_road_data[road_name]["truck"] = scan["truck"]
+        latest_road_data[road_name]["ambulance"] = scan["ambulance"] > 0
+
+        congestion_level = calculate_congestion({
+            "cars": scan["car"],
+            "bikes": scan["bike"],
+            "bus": scan["bus"],
+            "truck": scan["truck"]
+        })
+        latest_road_data[road_name]["congestion"] = congestion_level
 
         camera_logs.insert_one({
             "timestamp": scan_start.isoformat(),
@@ -107,19 +122,6 @@ def run_rotation_cycle():
             "capture_duration_sec": (scan_end - scan_start).total_seconds(),
             "status": "success"
         })
-
-        congestion_level = calculate_congestion({
-            "cars": scan["car"],
-            "bikes": scan["bike"],
-            "bus": scan["bus"],
-            "truck": scan["truck"]
-        })
-
-        latest_road_data[road_name]["cars"] = scan["car"]
-        latest_road_data[road_name]["bikes"] = scan["bike"]
-        latest_road_data[road_name]["bus"] = scan["bus"]
-        latest_road_data[road_name]["truck"] = scan["truck"]
-        latest_road_data[road_name]["congestion"] = congestion_level  # now real, not hardcoded
 
         print(f"{road_name} result: {scan}")
         time.sleep(ROTATION_INTERVAL_SEC)
