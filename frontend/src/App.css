@@ -154,3 +154,297 @@
 .camera-status strong {
   color: #ffffff;
 }
+/* ---------- Historical statistics ---------- */
+
+.stats-section {
+  margin-top: 2.5rem;
+}
+
+.section-title {
+  font-size: 1.3rem;
+  color: #ffffff;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #2a3348;
+  padding-bottom: 0.6rem;
+}
+
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-chip {
+  background: #1a2132;
+  border: 1px solid #2a3348;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+}
+
+.stat-chip-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #8a93a6;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.4rem;
+}
+
+.stat-chip-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.stat-chip-value.small {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.chart-card {
+  background: #1a2132;
+  border: 1px solid #2a3348;
+  border-radius: 10px;
+  padding: 1.2rem;
+}
+
+.chart-card.wide {
+  grid-column: 1 / -1;
+}
+
+.chart-title {
+  font-size: 0.95rem;
+  color: #e6e9ef;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
+}
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 0.8rem;
+  height: 200px;
+}
+
+.bar-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.bar-value {
+  font-size: 0.8rem;
+  color: #c3c9d6;
+  margin-bottom: 0.35rem;
+}
+
+.bar-track {
+  flex: 1;
+  width: 100%;
+  max-width: 60px;
+  display: flex;
+  align-items: flex-end;
+  background: #131a29;
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+}
+
+.bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #4a9eff 0%, #1e6fd9 100%);
+  border-radius: 6px 6px 0 0;
+  transition: height 0.4s ease;
+}
+
+.bar-label {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #c3c9d6;
+  font-weight: 600;
+}
+
+.congestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.congestion-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #c3c9d6;
+  margin-bottom: 0.35rem;
+}
+
+.congestion-count {
+  color: #8a93a6;
+}
+
+.congestion-track {
+  width: 100%;
+  height: 12px;
+  background: #131a29;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.congestion-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+.vehicle-type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.vehicle-type-card {
+  background: #131a29;
+  border-radius: 8px;
+  padding: 0.9rem;
+  text-align: center;
+}
+
+.vehicle-type-label {
+  font-size: 0.78rem;
+  color: #8a93a6;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.4rem;
+}
+
+.vehicle-type-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+/* ---------- Traffic trends ---------- */
+
+.trend-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.control-label {
+  font-size: 0.78rem;
+  color: #8a93a6;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-right: 0.3rem;
+}
+
+.pill {
+  background: #1a2132;
+  border: 1px solid #2a3348;
+  color: #c3c9d6;
+  border-radius: 20px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.pill:hover {
+  background: #202940;
+  color: #ffffff;
+}
+
+.pill-active {
+  background: #1e6fd9;
+  border-color: #4a9eff;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.trend-meta {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #8a93a6;
+  margin-bottom: 1rem;
+}
+
+.trend-meta strong {
+  color: #ffffff;
+}
+
+.trend-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.axis-text {
+  fill: #8a93a6;
+  font-size: 11px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.chart-caption {
+  margin-top: 0.9rem;
+  font-size: 0.78rem;
+  color: #6f7893;
+  font-style: italic;
+}
+
+/* ---------- Historical reports ---------- */
+
+.reports-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.reports-header .section-title {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.export-btn {
+  margin-left: 0.6rem;
+}
+
+.export-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.traffic-table tbody tr.totals-row {
+  background-color: #0c1220 !important;
+  color: #ffffff;
+  font-weight: 700;
+  border-top: 2px solid #2a3348;
+}
+
+.traffic-table tbody tr.totals-row td {
+  border-bottom: none;
+}

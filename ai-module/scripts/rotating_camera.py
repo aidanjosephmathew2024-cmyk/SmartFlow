@@ -14,7 +14,7 @@ AMBULANCE_CLASS_ID = 4
 AMBULANCE_CONF_THRESHOLD = 0.5
 
 ROAD_VIDEOS = {
-    "North": "C:/Users/ASUS/Desktop/SmartFlow/ai-module/datasets/roboflow-ambulance/sample_videos/north.mp4",
+    "North": "C:/Users/ASUS/Desktop/SmartFlow/ai-module/datasets/roboflow-ambulance/sample_videos/north2.mp4",
     "East": "C:/Users/ASUS/Desktop/SmartFlow/ai-module/datasets/roboflow-ambulance/sample_videos/east.mp4",
     "South": "C:/Users/ASUS/Desktop/SmartFlow/ai-module/datasets/roboflow-ambulance/sample_videos/south.mp4",
     "West": "C:/Users/ASUS/Desktop/SmartFlow/ai-module/datasets/roboflow-ambulance/sample_videos/west.mp4",

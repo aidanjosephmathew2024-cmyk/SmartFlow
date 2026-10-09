@@ -1,5 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import './App.css';
+import StatsSummary from './components/StatsSummary';
+import TrafficTrends from './components/TrafficTrends';
+import HistoricalReports from './components/HistoricalReports';
 
 function App() {
   const [trafficData, setTrafficData] = useState([]);
@@ -194,6 +197,10 @@ function App() {
       {displayedData.length === 0 && (
         <p className="status-message">No records match this filter.</p>
       )}
+
+      {/* add this line here */}
+      <StatsSummary />
+      <TrafficTrends />
     </div>
   );
 }
