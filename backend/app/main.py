@@ -4,11 +4,21 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from .db import traffic_logs, db
-
+from bson import ObjectId
 
 app = FastAPI(title="SmartFlow API")
 
 camera_status = db["camera_status"]
+@app.delete("/traffic/{document_id}")
+def delete_traffic_document(document_id: str):
+    if not ObjectId.is_valid(document_id):
+        raise HTTPException(status_code=400, detail="Invalid document ID")
+
+    result = traffic_logs.delete_one({"_id": ObjectId(document_id)})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Traffic record not found")
+
+    return {"deleted": True}
 
 
 app.add_middleware(

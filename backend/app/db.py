@@ -9,3 +9,6 @@ client = MongoClient(MONGODB_URI)
 db = client["smartflow_db"]
 
 traffic_logs = db["traffic_logs"]
+
+traffic_logs.create_index([("timestamp", -1)])
+traffic_logs.create_index([("road", 1), ("timestamp", -1)])

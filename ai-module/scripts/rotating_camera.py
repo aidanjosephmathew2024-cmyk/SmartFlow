@@ -82,20 +82,48 @@ def scan_road(road_name, video_path):
 
     return final_scan
 
+def update_camera_status(road_name, status):
+    camera_status.update_one(
+        {"_id": "current"},
+        {
+            "$set": {
+                "current_road": road_name,
+                "status": status,
+                "last_updated": datetime.now().isoformat(),
+            }
+        },
+        upsert=True,
+    )
 
+
+def store_sape_cycle_results(roads_data, sape_result):
+    cycle_timestamp = datetime.now().isoformat()
+    documents = []
+
+    for road, data in roads_data.items():
+        documents.append({
+            "timestamp": cycle_timestamp,
+            "road": road,
+            "cars": data["cars"],
+            "bikes": data["bikes"],
+            "bus": data["bus"],
+            "truck": data["truck"],
+            "ambulance": data["ambulance"],
+            "congestion": data["congestion"],
+            "priority_score": (
+                sape_result["tps"][road] if sape_result["tps"] else None
+            ),
+            "green_time": sape_result["green_times"][road],
+        })
+
+    if documents:
+        traffic_logs.insert_many(documents)
+        
 def run_rotation_cycle():
     for road_name, video_path in ROAD_VIDEOS.items():
         print(f"\n📷 Rotating to {road_name}... capturing {FRAMES_PER_SCAN} frames")
 
-        camera_status.update_one(
-            {"_id": "current"},
-            {"$set": {
-                "current_road": road_name,
-                "status": "scanning",
-                "last_updated": datetime.now().isoformat()
-            }},
-            upsert=True
-        )
+        update_camera_status(road_name, "scanning")
 
         scan_start = datetime.now()
         scan = scan_road(road_name, video_path)
@@ -132,20 +160,7 @@ def run_rotation_cycle():
     print(f"TPS: {sape_result['tps']}")
     print(f"Green Times: {sape_result['green_times']}")
 
-    for road, data in latest_road_data.items():
-        document = {
-            "timestamp": datetime.now().isoformat(),
-            "road": road,
-            "cars": data["cars"],
-            "bikes": data["bikes"],
-            "bus": data["bus"],
-            "truck": data["truck"],
-            "ambulance": data["ambulance"],
-            "congestion": data["congestion"],
-            "priority_score": sape_result["tps"][road] if sape_result["tps"] else None,
-            "green_time": sape_result["green_times"][road]
-        }
-        traffic_logs.insert_one(document)
+    store_sape_cycle_results(latest_road_data, sape_result)
 
     print("\n✅ Rotation cycle complete. All 4 roads updated in traffic_logs.\n")
 
