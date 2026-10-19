@@ -201,6 +201,7 @@ function App() {
       {/* add this line here */}
       <StatsSummary />
       <TrafficTrends />
+      <HistoricalReports />
     </div>
   );
 }
