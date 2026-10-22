@@ -73,36 +73,34 @@ def calculate_green_times(all_roads_tps):
     return green_times
 
 
+
 def run_sape(roads_data, rush_hour=None):
-    """
-    Main SAPE entry point.
-    roads_data = {
-        "North": {"cars":.., "bikes":.., "bus":.., "truck":.., "ambulance": bool, "congestion": "Low"/"Medium"/"High"},
-        "East": {...}, "South": {...}, "West": {...}
-    }
-    """
     if rush_hour is None:
         rush_hour = is_rush_hour()
 
-    # ---- STAGE 1: Emergency Override ----
-    for road, data in roads_data.items():
-        if data.get("ambulance", False):
-            print(f"\n🚨 EMERGENCY OVERRIDE: Ambulance detected on {road}!")
-            green_times = {}
-            for r in roads_data:
-                green_times[r] = EMERGENCY_GREEN_TIME if r == road else MIN_GREEN_TIME
-            return {
-                "emergency_override": True,
-                "override_road": road,
-                "green_times": green_times,
-                "tps": None
-            }
-
-    # ---- STAGE 2: Weighted TPS ----
+    # Stage 1: Calculate TPS for every road
     tps_results = {}
     for road, data in roads_data.items():
         tps_results[road] = calculate_tps(data, rush_hour)
 
+    # Stage 2: Emergency override
+    for road, data in roads_data.items():
+        if data.get("ambulance", False):
+            print(f"\nEMERGENCY OVERRIDE: Ambulance detected on {road}!")
+
+            green_times = {
+                r: EMERGENCY_GREEN_TIME if r == road else MIN_GREEN_TIME
+                for r in roads_data
+            }
+
+            return {
+                "emergency_override": True,
+                "override_road": road,
+                "green_times": green_times,
+                "tps": tps_results
+            }
+
+    # Stage 3: Normal traffic-based signal allocation
     green_times = calculate_green_times(tps_results)
 
     return {
@@ -111,6 +109,7 @@ def run_sape(roads_data, rush_hour=None):
         "green_times": green_times,
         "tps": tps_results
     }
+
 
 def calculate_congestion(vehicle_data):
     """
